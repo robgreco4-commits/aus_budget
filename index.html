@@ -502,7 +502,7 @@ async function showAnalysis(){
  if(!changed.length){document.getElementById('mloading').style.display='none';document.getElementById('merror').style.display='block';return;}
  const prompt=`You are analysing an Australian federal budget simulation. Here are the policy choices and result:\n\n${txt}\n\nRespond ONLY with valid JSON (no markdown, no explanation) with this exact structure:\n{"pm":"Name of past or present Australian PM these choices most resemble","pm_era":"Their years in office","political_style":"One punchy sentence (max 12 words) describing the political style","economic":{"pros":["2-3 specific economic strengths"],"cons":["2-3 specific economic risks"]},"social":{"pros":["2-3 specific social benefits"],"cons":["2-3 specific social costs"]},"political":{"pros":["2-3 political strengths"],"cons":["2-3 political vulnerabilities"]}}\n\nChoose from: Robert Menzies, Gough Whitlam, Malcolm Fraser, Bob Hawke, Paul Keating, John Howard, Kevin Rudd, Julia Gillard, Tony Abbott, Malcolm Turnbull, Scott Morrison, Anthony Albanese. Be specific and Australian.`;
  try{
-  const resp=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+  const resp=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
   if(!resp.ok)throw new Error('API error');
   const data=await resp.json();
   const raw=data.content.find(c=>c.type==='text')?.text||'';
