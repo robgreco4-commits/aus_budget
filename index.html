@@ -501,25 +501,41 @@ async function showAnalysis(){
  document.getElementById('merror').style.display='none';
  if(!changed.length){document.getElementById('mloading').style.display='none';document.getElementById('merror').style.display='block';return;}
  const prompt=`You are analysing an Australian federal budget simulation. Here are the policy choices and result:\n\n${txt}\n\nRespond ONLY with valid JSON (no markdown, no explanation) with this exact structure:\n{"pm":"Name of past or present Australian PM these choices most resemble","pm_era":"Their years in office","political_style":"One punchy sentence (max 12 words) describing the political style","economic":{"pros":["2-3 specific economic strengths"],"cons":["2-3 specific economic risks"]},"social":{"pros":["2-3 specific social benefits"],"cons":["2-3 specific social costs"]},"political":{"pros":["2-3 political strengths"],"cons":["2-3 political vulnerabilities"]}}\n\nChoose from: Robert Menzies, Gough Whitlam, Malcolm Fraser, Bob Hawke, Paul Keating, John Howard, Kevin Rudd, Julia Gillard, Tony Abbott, Malcolm Turnbull, Scott Morrison, Anthony Albanese. Be specific and Australian.`;
+ async function tryAnalyse(prompt,attempt){
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),25000);
+  try{
+   const resp=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]}),signal:controller.signal});
+   clearTimeout(timeout);
+   if(!resp.ok){const errData=await resp.json().catch(()=>({}));throw new Error('API '+resp.status+': '+(errData.error?.message||'unknown'));}
+   const data=await resp.json();
+   const raw=data.content?.find(c=>c.type==='text')?.text||'';
+   if(!raw)throw new Error('Empty response from Claude');
+   const jsonMatch=raw.match(/\{[\s\S]*\}/);
+   if(!jsonMatch)throw new Error('No JSON in response');
+   return JSON.parse(jsonMatch[0]);
+  }catch(e){clearTimeout(timeout);throw e;}
+ }
+ let p;
  try{
-  const resp=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
-  if(!resp.ok)throw new Error('API status '+resp.status);
-  const data=await resp.json();
-  const raw=data.content?.find(c=>c.type==='text')?.text||'';
-  if(!raw)throw new Error('Empty response');
-  const jsonMatch=raw.match(/\{[\s\S]*\}/);
-  if(!jsonMatch)throw new Error('No JSON found in response');
-  const p=JSON.parse(jsonMatch[0]);
-  document.getElementById('mpmname').textContent=`${p.pm} (${p.pm_era})`;
-  document.getElementById('mpmstyle').textContent=p.political_style;
+  try{p=await tryAnalyse(prompt,1);}catch(e1){
+   document.getElementById('mloading').textContent='First attempt failed, retrying...';
+   p=await tryAnalyse(prompt,2);
+  }
+  if(!p.pm||!p.economic)throw new Error('Incomplete analysis');
+  document.getElementById('mpmname').textContent=`${p.pm} (${p.pm_era||''})`;
+  document.getElementById('mpmstyle').textContent=p.political_style||'';
   let html='';
   [['economic','Economic'],['social','Social'],['political','Political']].forEach(([cat,lbl])=>{
-   html+=`<div class="mcat-lbl">${lbl}</div><div class="mpc-grid"><div class="mpc-box" style="background:#ECFDF5"><div class="mpc-head pos">✓ Strengths</div>${p[cat].pros.map(x=>`<div class="mpc-item" style="color:#065F46">${x}</div>`).join('')}</div><div class="mpc-box" style="background:#FEF2F2"><div class="mpc-head neg">✗ Risks</div>${p[cat].cons.map(x=>`<div class="mpc-item" style="color:#991B1B">${x}</div>`).join('')}</div></div>`;
+   if(!p[cat])return;
+   const pros=(p[cat].pros||[]).map(x=>`<div class="mpc-item" style="color:#065F46">${x}</div>`).join('');
+   const cons=(p[cat].cons||[]).map(x=>`<div class="mpc-item" style="color:#991B1B">${x}</div>`).join('');
+   html+=`<div class="mcat-lbl">${lbl}</div><div class="mpc-grid"><div class="mpc-box" style="background:#ECFDF5"><div class="mpc-head pos">✓ Strengths</div>${pros}</div><div class="mpc-box" style="background:#FEF2F2"><div class="mpc-head neg">✗ Risks</div>${cons}</div></div>`;
   });
   document.getElementById('manalysis').innerHTML=html;
   document.getElementById('mloading').style.display='none';
   document.getElementById('mcontent').style.display='block';
- }catch(e){document.getElementById('mloading').style.display='none';document.getElementById('merror').style.display='block';}
+ }catch(e){document.getElementById('mloading').style.display='none';document.getElementById('merror').innerHTML='Analysis failed: '+e.message+'. <a href="#" onclick="copyBudget();document.getElementById(\'overlay\').style.display=\'none\';return false" style="color:var(--acc)">Copy budget summary instead →</a>';document.getElementById('merror').style.display='block';}
 }
 
 function resetAll(){
