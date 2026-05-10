@@ -503,10 +503,13 @@ async function showAnalysis(){
  const prompt=`You are analysing an Australian federal budget simulation. Here are the policy choices and result:\n\n${txt}\n\nRespond ONLY with valid JSON (no markdown, no explanation) with this exact structure:\n{"pm":"Name of past or present Australian PM these choices most resemble","pm_era":"Their years in office","political_style":"One punchy sentence (max 12 words) describing the political style","economic":{"pros":["2-3 specific economic strengths"],"cons":["2-3 specific economic risks"]},"social":{"pros":["2-3 specific social benefits"],"cons":["2-3 specific social costs"]},"political":{"pros":["2-3 political strengths"],"cons":["2-3 political vulnerabilities"]}}\n\nChoose from: Robert Menzies, Gough Whitlam, Malcolm Fraser, Bob Hawke, Paul Keating, John Howard, Kevin Rudd, Julia Gillard, Tony Abbott, Malcolm Turnbull, Scott Morrison, Anthony Albanese. Be specific and Australian.`;
  try{
   const resp=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
-  if(!resp.ok)throw new Error('API error');
+  if(!resp.ok)throw new Error('API status '+resp.status);
   const data=await resp.json();
-  const raw=data.content.find(c=>c.type==='text')?.text||'';
-  const p=JSON.parse(raw.replace(/```json|```/g,'').trim());
+  const raw=data.content?.find(c=>c.type==='text')?.text||'';
+  if(!raw)throw new Error('Empty response');
+  const jsonMatch=raw.match(/\{[\s\S]*\}/);
+  if(!jsonMatch)throw new Error('No JSON found in response');
+  const p=JSON.parse(jsonMatch[0]);
   document.getElementById('mpmname').textContent=`${p.pm} (${p.pm_era})`;
   document.getElementById('mpmstyle').textContent=p.political_style;
   let html='';
