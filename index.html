@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Can you save Australia's budget? 🇦🇺</title>
+<meta name="description" content="An interactive Australian federal budget simulator. Adjust tax and spending levers to try to move from deficit to surplus.">
+<meta property="og:title" content="Can you save Australia's budget?">
+<meta property="og:description" content="Move the levers on Australia's biggest taxes and spending programs. Starting from a $26.1B deficit — can you get to surplus?">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root {
+  --bg1: #ffffff;
+  --bg2: #f7f7f8;
+  --bg3: #eeeeef;
+  --tx1: #111111;
+  --tx2: #666666;
+  --tx3: #999999;
+  --bd1: #e0e0e0;
+  --bd2: #cccccc;
+  --acc: #2563eb;
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 12px;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg1:#1c1c1e;--bg2:#2c2c2e;--bg3:#3a3a3c;
+    --tx1:#f2f2f7;--tx2:#aeaeb2;--tx3:#6c6c70;
+    --bd1:#3a3a3c;--bd2:#4a4a4c;--acc:#4f8ef7;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg1);color:var(--tx1);padding:16px;max-width:1100px;margin:0 auto}
+h1{font-size:18px;font-weight:600;margin-bottom:4px}
+.subtitle{font-size:13px;color:var(--tx2);margin-bottom:14px}
+.hdr{background:var(--bg1);border:0.5px solid var(--bd1);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:14px;position:sticky;top:8px;z-index:20;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.hrow0{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.htitle{font-size:15px;font-weight:600;color:var(--tx1)}
+.xbtns{display:flex;gap:6px}
+.xbtn{font-size:10px;padding:3px 9px;cursor:pointer;border-radius:var(--r-sm);color:var(--tx2);border:0.5px solid var(--bd1);background:var(--bg2)}
+.xbtn:hover{background:var(--bg3)}
+.hrow1{display:flex;align-items:center;gap:12px}
+.balwrap{flex:1}
+.ballbl{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--tx3);margin-bottom:2px}
+.balnum{font-size:32px;font-weight:600;line-height:1;transition:color .3s}
+.sur{color:#16a34a}.def{color:#dc2626}
+.balnote{font-size:11px;color:var(--tx2);margin-top:3px}
+.gradebox{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0}
+.gc{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:600;transition:all .3s}
+.gl{font-size:10px;color:var(--tx3)}
+.barwrap{margin-top:8px}
+.bartrack{height:6px;background:var(--bg3);border:0.5px solid var(--bd1);border-radius:3px;overflow:hidden;position:relative}
+.barfill{height:100%;border-radius:3px;transition:width .4s,background .4s}
+.barmid{position:absolute;top:-1px;left:50%;width:1.5px;height:8px;background:var(--bd2)}
+.barlbls{display:flex;justify-content:space-between;font-size:10px;color:var(--tx3);margin-top:2px}
+.bigmets{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.bmet{background:var(--bg2);border-radius:var(--r-md);padding:8px 11px;border:0.5px solid var(--bd1)}
+.bmtitle{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);margin-bottom:3px}
+.bmain{font-size:19px;font-weight:600;color:var(--tx1)}
+.bsub{font-size:11px;color:var(--tx2);margin-top:1px}
+.bdelta{font-size:11px;font-weight:500;margin-top:3px}
+.smets{display:flex;gap:8px;margin-top:8px}
+.smet{background:var(--bg2);border-radius:var(--r-md);padding:6px 10px;flex:1;border:0.5px solid var(--bd1)}
+.sml{font-size:10px;color:var(--tx2);margin-bottom:1px}
+.smv{font-size:12px;font-weight:600}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.colhead{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--tx3);padding:4px 0 6px;border-bottom:1.5px solid var(--bd2);margin-bottom:6px}
+.grp{margin-bottom:6px;border:0.5px solid var(--bd1);border-radius:var(--r-md);overflow:hidden}
+.gh{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;cursor:pointer;background:var(--bg2);user-select:none;gap:6px}
+.gh:hover{background:var(--bg3)}
+.ghn{font-size:11px;font-weight:600;color:var(--tx1);flex:1;line-height:1.3}
+.gamt{font-size:10px;color:var(--tx3);font-weight:400}
+.ghr{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.gt{font-size:11px;font-weight:600}
+.chev{font-size:14px;color:var(--tx3);transition:transform .2s;display:inline-block}
+.gcb{padding:6px 10px 9px;display:none;background:var(--bg1)}
+.lev{padding:5px 0;border-bottom:0.5px solid var(--bd1)}
+.lev:last-child{border-bottom:none}
+.lt{display:flex;justify-content:space-between;align-items:center;gap:5px;margin-bottom:1px}
+.ln{font-size:11px;font-weight:500;color:var(--tx1);line-height:1.3;flex:1}
+.lright{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.lv{font-size:11px;font-weight:600;color:var(--tx1);white-space:nowrap;line-height:1.4}
+.lv.abolished{color:#dc2626;font-style:italic}
+.abolishbtn-sm{font-size:11px;padding:0 5px;cursor:pointer;color:var(--tx3);border:0.5px solid var(--bd1);border-radius:3px;background:none;white-space:nowrap;line-height:1.4;font-weight:400}
+.abolishbtn-sm:hover{color:#dc2626;border-color:#dc2626}
+.abolishbtn-sm.restored{color:#16a34a;border-color:#16a34a}
+.ld{font-size:10px;color:var(--tx3);margin-bottom:3px;line-height:1.35}
+.li{font-size:10px;font-weight:600;margin-top:2px}
+.lev-info{padding:5px 0;border-bottom:0.5px solid var(--bd1)}
+.info-row{display:flex;justify-content:space-between;align-items:center}
+.info-lbl{font-size:11px;font-weight:500;color:var(--tx2)}
+.info-val{font-size:11px;font-weight:600;color:var(--tx2)}
+.info-note{font-size:10px;color:var(--tx3);margin-top:2px;font-style:italic}
+.combined-box{background:var(--bg2);border-radius:var(--r-sm);padding:6px 9px;margin-top:5px;border:0.5px solid var(--bd1)}
+.cb-title{font-size:10px;color:var(--tx2)}
+.cb-val{font-size:11px;font-weight:600}
+.pos{color:#16a34a}.neg{color:#dc2626}.neu{color:var(--tx3)}
+input[type=range]{width:100%;cursor:pointer;height:14px;accent-color:var(--acc)}
+input[type=range]:disabled{opacity:.3;cursor:not-allowed}
+.foot{border-top:0.5px solid var(--bd1);padding:10px 0 4px;display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btn{font-size:12px;padding:6px 14px;cursor:pointer;border-radius:var(--r-sm);border:0.5px solid var(--bd2);background:var(--bg2);color:var(--tx1);font-family:inherit}
+.btn:hover{background:var(--bg3)}
+.btn-primary{background:var(--acc);color:#fff;border-color:var(--acc)}
+.btn-primary:hover{opacity:.9}
+.disc{font-size:10px;color:var(--tx3);margin-top:8px;line-height:1.5;padding-bottom:24px}
+/* Modal */
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;overflow-y:auto;padding:20px}
+#modalBox{background:var(--bg1);max-width:620px;width:100%;border-radius:var(--r-lg);padding:22px;position:relative;margin:0 auto;border:0.5px solid var(--bd1)}
+.mclose{position:absolute;top:14px;right:16px;font-size:18px;background:none;border:none;cursor:pointer;color:var(--tx3);line-height:1;font-family:inherit}
+.mclose:hover{color:var(--tx1)}
+.mgrade-row{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.mgc{width:66px;height:66px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:27px;font-weight:700;flex-shrink:0}
+.mgrade-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--tx3);margin-bottom:3px}
+.mgrade-desc{font-size:13px;font-weight:600;color:var(--tx1)}
+.mbal{font-size:12px;color:var(--tx2);margin-top:3px}
+.mpm-box{background:var(--bg2);border-radius:var(--r-md);padding:12px 14px;margin-bottom:14px;border:0.5px solid var(--bd1)}
+.mpm-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx3);margin-bottom:4px;font-weight:500}
+.mpm-name{font-size:15px;font-weight:700;color:var(--tx1)}
+.mpm-style{font-size:12px;color:var(--tx2);margin-top:4px;font-style:italic}
+.mcat-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);margin:12px 0 6px}
+.mpc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mpc-box{border-radius:var(--r-sm);padding:10px}
+.mpc-head{font-size:10px;font-weight:700;margin-bottom:5px}
+.mpc-item{font-size:11px;margin-bottom:4px;line-height:1.4}
+.mfooter{border-top:0.5px solid var(--bd1);padding-top:12px;margin-top:14px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.mloading{text-align:center;padding:24px;color:var(--tx2);font-size:13px}
+.merror{text-align:center;padding:16px;color:var(--tx2);font-size:12px}
+/* Toast */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#111;color:#fff;font-size:12px;padding:8px 16px;border-radius:20px;opacity:0;transition:all .3s;z-index:2000;pointer-events:none}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:640px){
+  .cols{grid-template-columns:1fr}
+  .bigmets{grid-template-columns:1fr 1fr}
+  .mpc-grid{grid-template-columns:1fr}
+  .hdr{position:static}
+  body{padding:12px}
+}
+</style>
+</head>
+<body>
+
+<h1>🇦🇺 Can you save Australia's budget?</h1>
+<p class="subtitle">2025–26 MYEFO baseline: −$26.1B deficit. Adjust the levers and try to reach surplus.</p>
+
+<div id="toast"></div>
+
+<!-- Analysis modal -->
+<div id="overlay">
+<div id="modalBox">
+  <button class="mclose" onclick="document.getElementById('overlay').style.display='none'">✕</button>
+  <div class="mgrade-row">
+    <div class="mgc" id="mgc"></div>
+    <div><div class="mgrade-lbl">Budget grade</div><div class="mgrade-desc" id="mgdesc"></div><div class="mbal" id="mgbal"></div></div>
+  </div>
+  <div id="mloading" class="mloading">Analysing your budget choices…</div>
+  <div id="mcontent" style="display:none">
+    <div class="mpm-box">
+      <div class="mpm-lbl">Your budget most resembles</div>
+      <div class="mpm-name" id="mpmname"></div>
+      <div class="mpm-style" id="mpmstyle"></div>
+    </div>
+    <div id="manalysis"></div>
+  </div>
+  <div id="merror" class="merror" style="display:none">Analysis unavailable. <a href="#" onclick="copyBudget();document.getElementById('overlay').style.display='none';return false" style="color:var(--acc)">Copy budget summary instead →</a></div>
+  <div class="mfooter">
+    <button class="btn" onclick="copyBudget();document.getElementById('overlay').style.display='none'">Copy summary</button>
+    <button class="btn" onclick="document.getElementById('overlay').style.display='none'">Close</button>
+  </div>
+</div>
+</div>
+
+<!-- Sticky header -->
+<div class="hdr">
+  <div class="hrow0">
+    <div class="htitle">Budget dashboard</div>
+    <div class="xbtns">
+      <button class="xbtn" onclick="toggleAll(true)">Expand all</button>
+      <button class="xbtn" onclick="toggleAll(false)">Collapse all</button>
+    </div>
+  </div>
+  <div class="hrow1">
+    <div class="balwrap">
+      <div class="ballbl">Budget balance — 2025–26 MYEFO baseline: −$26.1B</div>
+      <div class="balnum def" id="bN">−$26.1B</div>
+      <div class="balnote" id="bX">Deficit — find another $26.1B to break even</div>
+    </div>
+    <div class="gradebox"><div class="gc" id="gC" style="background:#FEE2E2;color:#991B1B">D</div><div class="gl">Grade</div></div>
+  </div>
+  <div class="barwrap">
+    <div class="bartrack"><div class="barfill" id="bF" style="width:28%;background:#dc2626"></div><div class="barmid"></div></div>
+    <div class="barlbls"><span>−$60B</span><span>Break even</span><span>+$60B</span></div>
+  </div>
+  <div class="bigmets">
+    <div class="bmet"><div class="bmtitle">↑ Total taxation revenue</div><div class="bmain" id="mRT">$709B</div><div class="bsub" id="mRG">26.3% of GDP</div><div class="bdelta neu" id="mRD">Baseline — no change</div></div>
+    <div class="bmet"><div class="bmtitle">↓ Total spending</div><div class="bmain" id="mST">$735B</div><div class="bsub" id="mSG">27.2% of GDP</div><div class="bdelta neu" id="mSD">Baseline — no change</div></div>
+  </div>
+  <div class="smets">
+    <div class="smet"><div class="sml">Revenue raised</div><div class="smv neu" id="smR">+$0B</div></div>
+    <div class="smet"><div class="sml">Spending saved</div><div class="smv neu" id="smS">+$0B</div></div>
+    <div class="smet"><div class="sml">Net improvement</div><div class="smv neu" id="smT">+$0B</div></div>
+  </div>
+</div>
+
+<div class="cols"><div id="rC"></div><div id="sC"></div></div>
+
+<div class="foot">
+  <button class="btn" onclick="resetAll()">↺ Reset all</button>
+  <button class="btn btn-primary" onclick="showAnalysis()">Analyse my budget ↗</button>
+  <button class="btn" onclick="copyBudget()">Copy summary</button>
+</div>
+<div class="disc">Figures approximate — 2025–26 MYEFO baseline. GDP ~$2,700B. NDIS cost = participants × avg cost. New taxes start at $0. Debt interest (~$27B) is non-adjustable. Multipliers are simplified; real impacts depend on behavioural responses and policy design.</div>
+
+<script>
+const BDEF=-26.1,BREV=709,BSPE=735,GDP=2700;
+const NDIS_BASE_PEOPLE=640000,NDIS_BASE_COST=72000;
+const NDIS_BASE_B=NDIS_BASE_PEOPLE*NDIS_BASE_COST/1e9;
+
+const G=[
+ {cat:'r',id:'pit',label:'1. Personal income tax & Medicare levy',amt:'~$339B/yr',levers:[
+  {id:'p1',n:'Lower bracket rate',u:'%',min:0,max:100,step:.5,base:19,canDelete:true,d:'On $18,201–$45,000 (currently 19%). Each 1pp ≈ $2.5B.',fn:v=>(v-19)*2.5},
+  {id:'p2',n:'Middle bracket rate',u:'%',min:0,max:100,step:.5,base:32.5,canDelete:true,d:'On $45,001–$120,000 (currently 32.5%). Each 1pp ≈ $5.5B.',fn:v=>(v-32.5)*5.5},
+  {id:'p3',n:'Upper bracket rate',u:'%',min:0,max:100,step:.5,base:37,canDelete:true,d:'On $120,001–$180,000 (currently 37%). Each 1pp ≈ $2.2B.',fn:v=>(v-37)*2.2},
+  {id:'p4',n:'Top marginal rate',u:'%',min:0,max:100,step:.5,base:45,canDelete:true,d:'On income above $180,000 (currently 45%). Each 1pp ≈ $2.2B.',fn:v=>(v-45)*2.2},
+  {id:'mlev',n:'Medicare levy rate',u:'%',min:0,max:4,step:.1,base:2,d:'Currently 2% flat rate on most taxable incomes. Revenue ~$25B/yr. Each 1pp ≈ $12.5B.',fn:v=>(v-2)*12.5},
+ ]},
+ {cat:'r',id:'corp',label:'2. Company tax',amt:'~$130B/yr',levers:[
+  {id:'c1',n:'Large company rate',u:'%',min:0,max:100,step:.5,base:30,d:'Turnover >$50M (currently 30%). Each 1pp ≈ $4.3B.',fn:v=>(v-30)*4.3},
+  {id:'c2',n:'Small business rate',u:'%',min:0,max:100,step:.5,base:25,d:'Turnover <$50M (currently 25%). Each 1pp ≈ $700M.',fn:v=>(v-25)*.7},
+ ]},
+ {cat:'r',id:'gst',label:'3. GST',amt:'~$95B/yr',levers:[
+  {id:'g1',n:'GST rate',u:'%',min:0,max:100,step:.5,base:10,d:'Currently 10%. Each 1pp ≈ $8B. At 0% = abolished (−$95B). At 15% = NZ equivalent.',fn:v=>(v-10)*8},
+  {id:'g2',n:'Expand base to food, health & education',u:'% coverage',min:0,max:100,step:5,base:0,d:'Currently exempt. Full coverage ≈ +$20B/yr. Requires state agreement.',fn:v=>(v/100)*20},
+ ]},
+ {cat:'r',id:'sup',label:'4. Superannuation taxes',amt:'~$25B/yr',levers:[
+  {id:'s1',n:'Earnings tax — accumulation phase',u:'%',min:0,max:100,step:1,base:15,d:'Currently 15% on super fund earnings. Each 1pp ≈ $1.8B.',fn:v=>(v-15)*1.8},
+  {id:'s2',n:'Concessional contributions tax',u:'%',min:0,max:100,step:1,base:15,d:'Currently 15% on employer & salary-sacrifice contributions. Each 1pp ≈ $1.5B.',fn:v=>(v-15)*1.5},
+ ]},
+ {cat:'r',id:'cgt',label:'5. Capital gains tax',amt:'~$40B/yr',levers:[
+  {id:'k1',n:'CGT discount — investment assets',u:'%',min:0,max:100,step:5,base:50,d:'Currently 50% discount for assets held >12m. Lower = more tax. Each 10pp ≈ $4B.',fn:v=>(50-v)*.4},
+  {id:'k2',n:'Primary residence — % of gain taxed',u:'%',min:0,max:100,step:5,base:0,d:'Currently fully exempt. Full inclusion ≈ up to +$20B/yr.',fn:v=>(v/100)*20},
+ ]},
+ {cat:'r',id:'ng',label:'6. Negative gearing',amt:'~$4B tax expenditure',levers:[
+  {id:'n1',n:'Rental loss deductibility restriction',u:'% restricted',min:0,max:100,step:10,base:0,d:'0% = status quo: losses fully offset wage income. 100% = losses only offset investment income (UK model). Full restriction saves ~$4B/yr.',fn:v=>(v/100)*4},
+ ]},
+ {cat:'r',id:'fuel',label:'7. Fuel excise',amt:'~$20B/yr',levers:[
+  {id:'f1',n:'Fuel excise rate',u:'¢/L',min:0,max:100,step:.5,base:44,d:'Currently 44¢/L. Each 1¢/L ≈ $450M. At 0¢ = abolished (−$20B).',fn:v=>(v-44)*.45},
+ ]},
+ {cat:'r',id:'exc',label:'8. Tobacco & alcohol excise',amt:'~$6B/yr',levers:[
+  {id:'t1',n:'Tobacco excise',u:'$/stick',min:0,max:3,step:.05,base:1.75,d:'Currently ~$1.75/stick. Each additional $1 ≈ +$2B. At $0 = abolished.',fn:v=>(v-1.75)*2},
+  {id:'t2',n:'Alcohol excise',u:'$/std drink',min:0,max:2,step:.05,base:.70,d:'~$0.70/std drink (285mL beer, 100mL wine, 30mL spirits). At $0 = abolished.',fn:v=>(v-.70)/.70*2.5},
+ ]},
+ {cat:'r',id:'res',label:'9. Resource & mining taxes',amt:'~$3B/yr',levers:[
+  {id:'r1',n:'PRRT effective rate',u:'%',min:0,max:80,step:1,base:40,d:'Nominal 40% (midpoint). Effective rate far lower due to uplift deductions. Drag right = tighten deductions. Each 1pp above 40% ≈ +$250M.',fn:v=>(v-40)*.25},
+  {id:'r2',n:'Federal mineral resources levy',u:'% of profits',min:0,max:20,step:.5,base:0,d:'No federal levy exists. New profit-based levy on iron ore, coal & LNG. Each 1% ≈ +$750M.',fn:v=>v*.75},
+ ]},
+ {cat:'r',id:'fbt',label:'10. Fringe benefits tax',amt:'~$4B/yr',levers:[
+  {id:'fb1',n:'FBT rate',u:'%',min:0,max:100,step:1,base:47,d:'Currently 47% on non-cash benefits. At 0% = FBT abolished (−$4B). Each 1pp ≈ $85M.',fn:v=>(v-47)*.085},
+  {id:'fb2',n:'Remove FBT exemptions',u:'% removed',min:0,max:100,step:10,base:0,d:'EVs, laptops, novated leases, remote area benefits. Full removal ≈ +$2B/yr.',fn:v=>(v/100)*2},
+ ]},
+ {cat:'r',id:'newtax',label:'11. New taxes',amt:'currently $0',levers:[
+  {id:'nt1',n:'Broad-based land value tax',u:'%/yr',min:0,max:2,step:.05,base:0,d:'Annual rate on unimproved land value (~$6.5T). At 0.5% ≈ $33B; at 1% ≈ $65B. Henry Review top recommendation.',fn:v=>v*65},
+  {id:'nt2',n:'Carbon price',u:'$/tonne CO2e',min:0,max:100,step:5,base:0,d:'~490Mt CO2e/yr. At $30/t ≈ $4B; at $75/t ≈ $9B after exemptions & behaviour change.',fn:v=>v*.12},
+  {id:'nt3',n:'Inheritance / estate tax',u:'% on estates >$2M',min:0,max:40,step:1,base:0,d:'Abolished federally 1979. ~50,000 eligible estates/yr. At 20% ≈ $7B; at 40% ≈ $14B.',fn:v=>v*.35},
+  {id:'nt4',n:'Annual wealth tax',u:'%/yr on net wealth >$10M',min:0,max:3,step:.1,base:0,d:'No federal wealth tax. At 1% ≈ $6B; at 2% ≈ $12B. High avoidance risk.',fn:v=>v*6},
+  {id:'nt5',n:'Financial transactions tax',u:'% on trades',min:0,max:.5,step:.05,base:0,d:'Tobin-style on ASX trades (~$3T/yr). At 0.1% ≈ $1B; at 0.5% ≈ $4B after volume reduction.',fn:v=>v*10},
+ ]},
+ {cat:'r',id:'othertax',label:'12. Other taxes',amt:'~$11B/yr',levers:[
+  {id:'cust',n:'Customs duties & tariffs',u:'% change',min:-50,max:100,step:5,base:0,d:'Import duties on clothing, footwear, vehicles. Baseline ~$9B/yr.',fn:v=>(v/100)*9},
+  {id:'lct',n:'Luxury car tax rate',u:'%',min:0,max:60,step:1,base:33,d:'Currently 33% on cars above ~$80k. Revenue ~$1B/yr. Each 1pp ≈ $30M.',fn:v=>(v-33)/33*1},
+  {id:'wet',n:'Wine equalisation tax rate',u:'%',min:0,max:50,step:1,base:29,d:'Currently 29% on wholesale wine price. Revenue ~$1B/yr. Each 1pp ≈ $35M.',fn:v=>(v-29)/29*1},
+ ]},
+ {cat:'s',id:'ap',label:'1. Age pension',amt:'~$60B/yr',levers:[
+  {id:'ap1',n:'Single fortnightly pension rate',u:'$/fn',min:800,max:1500,step:10,base:1116,d:'Max single rate incl. supplements: $1,116/fn. ~2.6M recipients.',fn:v=>-(v-1116)/1116*60},
+  {id:'ap2',n:'Eligibility age',u:'years',min:65,max:70,step:1,base:67,d:'Currently 67. Each year of deferral saves ~$2.5B/yr.',fn:v=>(v-67)*2.5},
+  {id:'ap3',n:'Assets test — upper cutout threshold (single homeowner)',u:'$k',min:200,max:2000,step:25,base:686,d:'Pension cuts out at ~$686k assets. Raising = more recipients. Each $100k ≈ $1B/yr.',fn:v=>(686-v)*0.01},
+ ]},
+ {cat:'s',id:'wel',label:'2. Welfare, family & childcare',amt:'~$89B/yr',levers:[
+  {id:'w1',n:'JobSeeker rate (single, no children)',u:'$/fn',min:400,max:1200,step:5,base:763,d:'Currently $763/fn. ~900,000 recipients. Total ~$35B/yr.',fn:v=>-(v-763)/763*35},
+  {id:'w1e',n:'JobSeeker income test — cutout threshold',u:'$/fn income',min:500,max:2500,step:25,base:1337,d:'Income at which JobSeeker reduces to $0. Currently ~$1,337/fn. Each $100/fn ≈ $500M.',fn:v=>-(v-1337)/100*0.5},
+  {id:'w2',n:'Disability support pension (single)',u:'$/fn',min:600,max:1500,step:10,base:1116,d:'Currently $1,116/fn. ~760,000 recipients. Total ~$25B/yr.',fn:v=>-(v-1116)/1116*25},
+  {id:'w2e',n:'DSP — impairment table points threshold',u:'points',min:10,max:30,step:1,base:20,d:'Currently 20 points needed to qualify. Higher = harder to qualify. Each 5pp ≈ $2.5B saving.',fn:v=>(v-20)*0.5},
+  {id:'w3',n:'Family Tax Benefit A (per child)',u:'$/fn',min:0,max:400,step:5,base:180,d:'Per eligible dependent child. ~3M children. Total ~$12B/yr.',fn:v=>-(v-180)/180*12},
+  {id:'w4',n:'Family Tax Benefit B (per family)',u:'$/fn',min:0,max:350,step:5,base:160,d:'Single-income family supplement. ~1.3M families. Total ~$5B/yr.',fn:v=>-(v-160)/160*5},
+  {id:'w5',n:'Childcare subsidy (avg per day)',u:'$/day',min:0,max:130,step:5,base:55,d:'Average CCS contribution per childcare day. ~200M days/yr. Total ~$12B/yr.',fn:v=>-(v-55)/55*12},
+ ]},
+ {cat:'s',id:'hlt',label:'3. Health & Medicare',amt:'~$115B/yr',levers:[
+  {id:'h1',n:'GP bulk-billing rate',u:'%',min:0,max:100,step:1,base:88,d:'Currently ~88% of GP visits bulk-billed. At 0% = no bulk billing. Each 1pp ≈ $120M saved.',fn:v=>(88-v)*.12},
+  {id:'h2',n:'Standard GP visit rebate (MBS Item 23)',u:'$/visit',min:0,max:80,step:1,base:43,d:'Currently $43/consult. At $0 = rebate abolished. Total GP MBS spend ~$10B/yr.',fn:v=>-(v-43)/43*10},
+  {id:'h3',n:'Federal hospital funding (NHFP)',u:'$B/yr',min:0,max:100,step:.5,base:45,d:'Federal contribution to state public hospitals. Baseline: $45B/yr.',fn:v=>45-v},
+  {id:'h4',n:'PBS co-payment — general patients',u:'$/script',min:0,max:80,step:.5,base:31.5,d:'Currently $31.60/script. ~350M scripts/yr. Each $1 increase ≈ $50M saved.',fn:v=>(v-31.5)*.05},
+ ]},
+ {cat:'s',id:'ndis',label:'4. NDIS',amt:'~$46B/yr',
+  specialFn:function(){return NDIS_BASE_B-(S['nd2']*S['nd3']/1e9);},
+  levers:[
+  {id:'nd2',n:'Number of participants',u:'people',min:0,max:1280000,step:10000,base:NDIS_BASE_PEOPLE,isSpecial:true,d:'Currently ~640,000 (midpoint). At 0 = NDIS abolished. Cost = participants × avg cost below.',fn:v=>0},
+  {id:'nd3',n:'Average annual cost per participant',u:'$/person/yr',min:0,max:100000,step:1000,base:NDIS_BASE_COST,isSpecial:true,d:'Current avg: ~$72,000/yr. Reduce via plan reviews, independent assessments, provider price reform.',fn:v=>0},
+ ]},
+ {cat:'s',id:'agec',label:'5. Aged care',amt:'~$30B/yr',levers:[
+  {id:'ac1',n:'Avg annual in-home care package value',u:'$/person/yr',min:0,max:100000,step:500,base:20000,d:'Per eligible person (~900,000). Level 1: $9,800 → Level 4: $55,800. Avg: ~$20,000. Total: ~$18B/yr.',fn:v=>-(v-20000)/20000*18},
+  {id:'ac2',n:'Govt share of residential care costs',u:'%',min:0,max:100,step:5,base:70,d:'Govt covers ~70% of residential costs (~200,000 residents). Total: ~$12B/yr.',fn:v=>-(v-70)/70*12},
+ ]},
+ {cat:'s',id:'edu',label:'6. Education',amt:'~$55B/yr',levers:[
+  {id:'ed1',n:'Federal funding per student',u:'$/student/yr',min:0,max:15000,step:100,base:7500,d:'~$7,500/student/yr (~4M students = $30B).',fn:v=>-(v-7500)/7500*30},
+  {id:'ed2',n:'University research grants',u:'$B/yr',min:0,max:20,step:.5,base:10,d:'ARC, National Competitive Grants, research block grants. Baseline: ~$10B/yr.',fn:v=>10-v},
+  {id:'ed3',n:'Commonwealth student fee subsidy',u:'%',min:0,max:100,step:5,base:45,d:'% of uni course cost covered by govt. ~45% avg. At 0% = full fees; at 100% = free university.',fn:v=>-(v-45)/45*15},
+ ]},
+ {cat:'s',id:'def',label:'7. Defence',amt:'~$57B/yr',levers:[
+  {id:'df1',n:'Defence spending',u:'% of GDP',min:0,max:5,step:.1,base:2.1,d:'Currently 2.1% of GDP (~$57B). AUKUS targets 2.5%+. Each 0.1pp ≈ $2.7B.',fn:v=>(2.1-v)*27},
+ ]},
+ {cat:'s',id:'inf',label:'8. Infrastructure',amt:'~$25B/yr',levers:[
+  {id:'in1',n:'Road & rail capital program',u:'$B/yr',min:0,max:40,step:.5,base:17,d:'National infrastructure pipeline. Baseline: $17B/yr.',fn:v=>17-v},
+  {id:'in2',n:'Other infrastructure & grants',u:'$B/yr',min:0,max:20,step:.5,base:8,d:'Airports, ports, community & regional grants. Baseline: $8B/yr.',fn:v=>8-v},
+ ]},
+ {cat:'s',id:'aps',label:'9. Public service',amt:'~$50B/yr',levers:[
+  {id:'ps1',n:'APS headcount',u:'staff',min:0,max:300000,step:5000,base:180000,d:'Currently ~180,000 staff. Wages ~$20B/yr. Each 10,000 ≈ $1.1B.',fn:v=>(180000-v)/180000*20},
+  {id:'ps2',n:'Wages vs CPI indexation',u:'% vs CPI',min:-3,max:3,step:.5,base:0,d:'Real-terms pay change vs indexed baseline. Total wage bill ~$50B/yr.',fn:v=>-(v/100)*50},
+ ]},
+ {cat:'s',id:'cli',label:'10. Climate & clean energy',amt:'~$15B/yr',levers:[
+  {id:'cl1',n:'Capacity investment scheme',u:'$B/yr',min:0,max:16,step:.5,base:8,d:'Underwriting clean energy (wind, solar, storage). Baseline: $8B/yr.',fn:v=>8-v},
+  {id:'cl2',n:'Other environment programs',u:'$B/yr',min:0,max:14,step:.5,base:7,d:'Nature repair, biodiversity, emissions reduction. Baseline: $7B/yr.',fn:v=>7-v},
+ ]},
+ {cat:'s',id:'otherspe',label:'11. Other spending',amt:'~$43B adj. + $27B debt interest',
+  infoItems:[{label:'Debt interest on existing govt bonds',val:'~$27B/yr',note:'Non-adjustable — interest on past borrowing. Grows with each year of deficit.'}],
+  levers:[
+  {id:'vet',n:"Veterans' affairs",u:'$B/yr',min:0,max:25,step:.5,base:13,d:'DVA compensation, health treatment & income support. Baseline: ~$13B/yr.',fn:v=>13-v},
+  {id:'faid',n:'Foreign aid & development (ODA)',u:'$B/yr',min:0,max:12,step:.5,base:5,d:'Official Development Assistance. Baseline: ~$5B/yr.',fn:v=>5-v},
+  {id:'hous',n:'Housing & homelessness',u:'$B/yr',min:0,max:20,step:.5,base:7,d:'Commonwealth Rent Assistance (~$5B), Housing Australia Future Fund, social housing. Baseline: ~$7B/yr.',fn:v=>7-v},
+  {id:'indig',n:'Indigenous programs (Closing the Gap)',u:'$B/yr',min:0,max:15,step:.5,base:6,d:'Land councils, community development, health, education. Baseline: ~$6B/yr.',fn:v=>6-v},
+  {id:'agri',n:'Agriculture, water & rural programs',u:'$B/yr',min:0,max:12,step:.5,base:5,d:'Drought relief, irrigation, biosecurity, farm grants. Baseline: ~$5B/yr.',fn:v=>5-v},
+  {id:'immig',n:'Immigration & home affairs',u:'$B/yr',min:0,max:12,step:.5,base:5,d:'Visa processing, Border Force, immigration detention. Baseline: ~$5B/yr.',fn:v=>5-v},
+  {id:'arts',n:'Arts, sports & culture',u:'$B/yr',min:0,max:6,step:.25,base:2,d:'Australia Council, national institutions, elite sports. Baseline: ~$2B/yr.',fn:v=>2-v},
+ ]},
+];
+
+const S={},OPEN={},ABOLISHED={};
+G.forEach(g=>g.levers.forEach(l=>{S[l.id]=l.base;if(l.canDelete)ABOLISHED[l.id]=false;}));
+
+function fv(l,v){
+ if(ABOLISHED[l.id])return'Abolished';
+ const n=parseFloat(v);
+ switch(l.u){
+  case'%':return n+'%';
+  case'% coverage':return n===0?'not applied':n+'% covered';
+  case'% of GDP':return n.toFixed(1)+'% of GDP';
+  case'$B/yr':return'$'+n.toFixed(1)+'B/yr';
+  case'%/yr':return n===0?'none':n+'%/yr';
+  case'years':return n+' yrs old';
+  case'% restricted':return n===0?'unrestricted':n+'% restricted';
+  case'% removed':return n===0?'none':n+'% removed';
+  case'$/fn':return'$'+Math.round(n).toLocaleString()+'/fn';
+  case'$/fn income':return'$'+Math.round(n).toLocaleString()+'/fn income';
+  case'$/day':return'$'+Math.round(n)+'/day';
+  case'staff':return n===0?'0 — abolished':parseInt(n).toLocaleString()+' staff';
+  case'% vs CPI':return(n>=0?'+':'')+n+'% vs CPI';
+  case'¢/L':return n.toFixed(1)+'¢/L';
+  case'$/stick':return'$'+n.toFixed(2)+'/stick';
+  case'$/std drink':return'$'+n.toFixed(2)+'/std drink';
+  case'% of profits':return n===0?'none':n+'%';
+  case'$/visit':return'$'+n.toFixed(0)+'/visit';
+  case'$/script':return'$'+n.toFixed(2)+'/script';
+  case'people':return n===0?'NDIS abolished':parseInt(n).toLocaleString()+' people';
+  case'$/person/yr':return n===0?'$0 (abolished)':'$'+Math.round(n).toLocaleString()+'/person/yr';
+  case'$/student/yr':return n===0?'$0 (withdrawn)':'$'+Math.round(n).toLocaleString()+'/student/yr';
+  case'% on estates >$2M':return n===0?'no estate tax':n+'%';
+  case'%/yr on net wealth >$10M':return n===0?'none':n+'%/yr';
+  case'% on trades':return n===0?'none':n+'%';
+  case'$/tonne CO2e':return n===0?'no price':'$'+n+'/t CO2e';
+  case'% change':return(n>=0?'+':'')+n+'%';
+  case'$k':return'$'+Math.round(n).toLocaleString()+'k';
+  case'points':return n+' points';
+  default:return v;
+ }
+}
+
+function fi(i){return(i>=0?'+':'−')+'$'+Math.abs(i).toFixed(1)+'B';}
+function grade(b){
+ if(b>=25)return{g:'A+',bg:'#D1FAE5',fg:'#064E3B',desc:"Outstanding surplus — Australia's finances in excellent shape"};
+ if(b>=10)return{g:'A',bg:'#ECFDF5',fg:'#065F46',desc:'Strong surplus — well above break-even'};
+ if(b>=0)return{g:'B+',bg:'#DBEAFE',fg:'#1E3A8A',desc:'Modest surplus — just in the black'};
+ if(b>=-5)return{g:'B',bg:'#EFF6FF',fg:'#1D4ED8',desc:'Near balance — small, manageable deficit'};
+ if(b>=-15)return{g:'C',bg:'#FEF3C7',fg:'#92400E',desc:'Notable deficit — significant fiscal challenge'};
+ if(b>=-30)return{g:'D',bg:'#FEE2E2',fg:'#991B1B',desc:'Large deficit — structural problems ahead'};
+ return{g:'F',bg:'#FEF2F2',fg:'#7F1D1D',desc:'Crisis-level deficit — urgent consolidation required'};
+}
+
+function calcBudget(){
+ let ri=0,si=0;
+ G.forEach(g=>{
+  g.levers.forEach(l=>{if(l.isSpecial)return;const eff=ABOLISHED[l.id]?0:S[l.id];const imp=l.fn(eff);if(g.cat==='r')ri+=imp;else si+=imp;});
+  if(g.specialFn){const sp=g.specialFn();if(g.cat==='s')si+=sp;else ri+=sp;}
+ });
+ return{ri,si,bal:BDEF+ri+si};
+}
+
+function update(){
+ let ri=0,si=0;
+ G.forEach(g=>{
+  let gt=0;
+  g.levers.forEach(l=>{
+   if(l.isSpecial)return;
+   const eff=ABOLISHED[l.id]?0:S[l.id];const imp=l.fn(eff);
+   if(g.cat==='r')ri+=imp;else si+=imp;gt+=imp;
+   const ve=document.getElementById('v'+l.id),ie=document.getElementById('i'+l.id);
+   if(ve){ve.textContent=fv(l,S[l.id]);ve.className='lv'+(ABOLISHED[l.id]?' abolished':'');}
+   if(ie){
+    if(ABOLISHED[l.id]){ie.textContent='Abolished — '+fi(imp);ie.className='li '+(imp>0?'pos':'neg');}
+    else if(Math.abs(imp)<0.05){ie.textContent='No change';ie.className='li neu';}
+    else{ie.textContent=fi(imp)+' vs baseline';ie.className='li '+(imp>0?'pos':'neg');}
+   }
+  });
+  if(g.specialFn){
+   g.levers.filter(l=>l.isSpecial).forEach(l=>{const ve=document.getElementById('v'+l.id);if(ve)ve.textContent=fv(l,S[l.id]);});
+   const sp=g.specialFn();gt+=sp;if(g.cat==='s')si+=sp;else ri+=sp;
+   const el=document.getElementById(g.id+'_comb');
+   if(el){const tc=(S['nd2']*S['nd3']/1e9).toFixed(1);el.innerHTML=`<span class="cb-title">Participants × avg cost = <strong>$${tc}B</strong> total spend</span><br><span class="cb-val ${sp>=0?'pos':'neg'}">${fi(sp)} vs $${NDIS_BASE_B.toFixed(1)}B baseline</span>`;}
+  }
+  const gte=document.getElementById('gt'+g.id);
+  if(gte){if(Math.abs(gt)<0.05){gte.textContent='';gte.className='gt neu';}else{gte.textContent=fi(gt);gte.className='gt '+(gt>0?'pos':'neg');}}
+ });
+ const ti=ri+si,bal=BDEF+ti,sur=bal>=0;
+ const totRev=Math.round(BREV+ri),totSpe=Math.round(BSPE-si);
+ const bn=document.getElementById('bN');
+ bn.textContent=(sur?'+':'−')+'$'+Math.abs(bal).toFixed(1)+'B';
+ bn.className='balnum '+(sur?'sur':'def');
+ document.getElementById('bX').textContent=sur?`Surplus — you're in the black! 🎉`:`Deficit — still need $${Math.abs(bal).toFixed(1)}B more`;
+ const pct=Math.max(0,Math.min(100,(bal+60)/120*100));
+ const bf=document.getElementById('bF');bf.style.width=pct+'%';bf.style.background=sur?'#16a34a':'#dc2626';
+ const gd=grade(bal);const gc=document.getElementById('gC');
+ gc.textContent=gd.g;gc.style.background=gd.bg;gc.style.color=gd.fg;
+ document.getElementById('mRT').textContent='$'+totRev+'B';
+ document.getElementById('mRG').textContent=(totRev/GDP*100).toFixed(1)+'% of GDP';
+ const rd=document.getElementById('mRD');
+ if(Math.abs(ri)<0.05){rd.textContent='Baseline — no change';rd.className='bdelta neu';}
+ else{rd.textContent=fi(ri)+' from baseline';rd.className='bdelta '+(ri>0?'pos':'neg');}
+ document.getElementById('mST').textContent='$'+totSpe+'B';
+ document.getElementById('mSG').textContent=(totSpe/GDP*100).toFixed(1)+'% of GDP';
+ const sd=document.getElementById('mSD');
+ if(Math.abs(si)<0.05){sd.textContent='Baseline — no change';sd.className='bdelta neu';}
+ else{sd.textContent='$'+Math.abs(si).toFixed(1)+'B '+(si>0?'below':'above')+' baseline';sd.className='bdelta '+(si>0?'pos':'neg');}
+ const fmt=v=>(v>=0?'+$':'−$')+Math.abs(v).toFixed(1)+'B';
+ ['smR','smS','smT'].forEach((id,i)=>{const vals=[ri,si,ti];const el=document.getElementById(id);el.textContent=fmt(vals[i]);el.className='smv '+(vals[i]>=0?'pos':'neg');});
+}
+
+function toggleAbolish(id){
+ ABOLISHED[id]=!ABOLISHED[id];
+ const btn=document.getElementById('del'+id),sl=document.getElementById('sl'+id);
+ if(btn){btn.textContent=ABOLISHED[id]?'Restore':'Abolish';btn.className=ABOLISHED[id]?'abolishbtn-sm restored':'abolishbtn-sm';}
+ if(sl)sl.disabled=ABOLISHED[id];
+ update();
+}
+function toggle(id){OPEN[id]=!OPEN[id];document.getElementById('gcb_'+id).style.display=OPEN[id]?'block':'none';document.getElementById('ch_'+id).style.transform=OPEN[id]?'rotate(180deg)':'rotate(0)';}
+function toggleAll(open){G.forEach(g=>{OPEN[g.id]=open;document.getElementById('gcb_'+g.id).style.display=open?'block':'none';document.getElementById('ch_'+g.id).style.transform=open?'rotate(180deg)':'rotate(0)';});}
+
+function renderCol(colId,cat){
+ const col=document.getElementById(colId);
+ const cnt=G.filter(g=>g.cat===cat).length;
+ let h=`<div class="colhead">${cat==='r'?'Revenue levers':'Spending levers'} (${cnt} categories)</div>`;
+ G.filter(g=>g.cat===cat).forEach(g=>{
+  h+=`<div class="grp"><div class="gh" onclick="toggle('${g.id}')"><span class="ghn">${g.label} <span class="gamt">(${g.amt})</span></span><div class="ghr"><span class="gt neu" id="gt${g.id}"></span><i class="ti ti-chevron-down chev" id="ch_${g.id}"></i></div></div><div class="gcb" id="gcb_${g.id}">`;
+  if(g.infoItems){g.infoItems.forEach(it=>{h+=`<div class="lev-info"><div class="info-row"><span class="info-lbl">${it.label}</span><span class="info-val">${it.val}</span></div><div class="info-note">${it.note}</div></div>`;});}
+  g.levers.forEach(l=>{
+   const del=l.canDelete?`<button class="abolishbtn-sm" id="del${l.id}" onclick="toggleAbolish('${l.id}')">Abolish</button>`:'';
+   const impLine=l.isSpecial?'':`<div class="li neu" id="i${l.id}">No change</div>`;
+   h+=`<div class="lev"><div class="lt"><span class="ln">${l.n}</span><div class="lright"><span class="lv" id="v${l.id}">${fv(l,l.base)}</span>${del}</div></div><div class="ld">${l.d}</div><input type="range" id="sl${l.id}" min="${l.min}" max="${l.max}" step="${l.step}" value="${l.base}" oninput="S['${l.id}']=parseFloat(this.value);update()">${impLine}</div>`;
+  });
+  if(g.specialFn){h+=`<div class="combined-box"><div id="${g.id}_comb"><span class="cb-title">Participants × avg cost = <strong>$${NDIS_BASE_B.toFixed(1)}B</strong> total spend</span><br><span class="cb-val neu">No change</span></div></div>`;}
+  h+='</div></div>';
+ });
+ col.innerHTML=h;
+}
+
+function buildSummaryText(){
+ const{ri,si,bal}=calcBudget();
+ const changed=[];G.forEach(g=>g.levers.forEach(l=>{if(ABOLISHED[l.id]||Math.abs(S[l.id]-l.base)>0.001)changed.push({g:g.label,l});}));
+ const byGroup={};changed.forEach(({g,l})=>{if(!byGroup[g])byGroup[g]=[];byGroup[g].push(l);});
+ let txt=`Result: ${bal>=0?'surplus':'deficit'} of $${Math.abs(bal).toFixed(1)}B\nRevenue change: ${ri>=0?'+':'-'}$${Math.abs(ri).toFixed(1)}B | Spending change: ${si>=0?'+':'-'}$${Math.abs(si).toFixed(1)}B\n\nPolicy changes:\n`;
+ Object.entries(byGroup).forEach(([gn,ls])=>{txt+=gn+':\n';ls.forEach(l=>txt+=`  - ${l.n}: ${fv(l,S[l.id])}${ABOLISHED[l.id]?' (abolished)':''} (was ${fv(l,l.base)})\n`);});
+ return{txt,changed,ri,si,bal};
+}
+
+function showToast(msg){
+ const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+ setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function copyBudget(){
+ const{txt}=buildSummaryText();
+ navigator.clipboard.writeText(txt).then(()=>showToast('Budget summary copied!')).catch(()=>showToast('Could not copy'));
+}
+
+async function showAnalysis(){
+ const{txt,changed,bal}=buildSummaryText();
+ const gd=grade(bal);
+ document.getElementById('overlay').style.display='block';
+ const mgc=document.getElementById('mgc');mgc.textContent=gd.g;mgc.style.background=gd.bg;mgc.style.color=gd.fg;
+ document.getElementById('mgdesc').textContent=gd.desc;
+ document.getElementById('mgbal').textContent=(bal>=0?'Surplus of $':'Deficit of $')+Math.abs(bal).toFixed(1)+'B';
+ document.getElementById('mloading').style.display='block';
+ document.getElementById('mcontent').style.display='none';
+ document.getElementById('merror').style.display='none';
+ if(!changed.length){document.getElementById('mloading').style.display='none';document.getElementById('merror').style.display='block';return;}
+ const prompt=`You are analysing an Australian federal budget simulation. Here are the policy choices and result:\n\n${txt}\n\nRespond ONLY with valid JSON (no markdown, no explanation) with this exact structure:\n{"pm":"Name of past or present Australian PM these choices most resemble","pm_era":"Their years in office","political_style":"One punchy sentence (max 12 words) describing the political style","economic":{"pros":["2-3 specific economic strengths"],"cons":["2-3 specific economic risks"]},"social":{"pros":["2-3 specific social benefits"],"cons":["2-3 specific social costs"]},"political":{"pros":["2-3 political strengths"],"cons":["2-3 political vulnerabilities"]}}\n\nChoose from: Robert Menzies, Gough Whitlam, Malcolm Fraser, Bob Hawke, Paul Keating, John Howard, Kevin Rudd, Julia Gillard, Tony Abbott, Malcolm Turnbull, Scott Morrison, Anthony Albanese. Be specific and Australian.`;
+ try{
+  const resp=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+  if(!resp.ok)throw new Error('API error');
+  const data=await resp.json();
+  const raw=data.content.find(c=>c.type==='text')?.text||'';
+  const p=JSON.parse(raw.replace(/```json|```/g,'').trim());
+  document.getElementById('mpmname').textContent=`${p.pm} (${p.pm_era})`;
+  document.getElementById('mpmstyle').textContent=p.political_style;
+  let html='';
+  [['economic','Economic'],['social','Social'],['political','Political']].forEach(([cat,lbl])=>{
+   html+=`<div class="mcat-lbl">${lbl}</div><div class="mpc-grid"><div class="mpc-box" style="background:#ECFDF5"><div class="mpc-head pos">✓ Strengths</div>${p[cat].pros.map(x=>`<div class="mpc-item" style="color:#065F46">${x}</div>`).join('')}</div><div class="mpc-box" style="background:#FEF2F2"><div class="mpc-head neg">✗ Risks</div>${p[cat].cons.map(x=>`<div class="mpc-item" style="color:#991B1B">${x}</div>`).join('')}</div></div>`;
+  });
+  document.getElementById('manalysis').innerHTML=html;
+  document.getElementById('mloading').style.display='none';
+  document.getElementById('mcontent').style.display='block';
+ }catch(e){document.getElementById('mloading').style.display='none';document.getElementById('merror').style.display='block';}
+}
+
+function resetAll(){
+ G.forEach(g=>g.levers.forEach(l=>{
+  S[l.id]=l.base;const sl=document.getElementById('sl'+l.id);if(sl){sl.value=l.base;sl.disabled=false;}
+  if(l.canDelete){ABOLISHED[l.id]=false;const b=document.getElementById('del'+l.id);if(b){b.textContent='Abolish';b.className='abolishbtn-sm';}}
+ }));
+ update();
+}
+
+renderCol('rC','r');renderCol('sC','s');update();
+</script>
+</body>
+</html>
