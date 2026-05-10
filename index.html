@@ -130,6 +130,7 @@ input[type=range]:disabled{opacity:.3;cursor:not-allowed}
 /* Toast */
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#111;color:#fff;font-size:12px;padding:8px 16px;border-radius:20px;opacity:0;transition:all .3s;z-index:2000;pointer-events:none}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.myefo-note{font-size:10px;color:var(--tx3);margin-top:6px;letter-spacing:.01em}
 /* Share card — off-screen, captured by html2canvas */
 #shareCardWrap{position:fixed;left:-9999px;top:-9999px;z-index:-1;pointer-events:none}
 #shareCard{width:600px;height:315px;background:#0a0a0a;border-radius:16px;overflow:hidden;position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:28px 32px 22px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
@@ -161,7 +162,7 @@ input[type=range]:disabled{opacity:.3;cursor:not-allowed}
 <body>
 
 <h1>🇦🇺 Can you save Australia's budget?</h1>
-<p class="subtitle">2025–26 MYEFO baseline: −$36.8B deficit. Adjust the levers and try to reach surplus.</p>
+<p class="subtitle">Adjust the levers below and try to reach surplus.</p>
 
 <div id="toast"></div>
 
@@ -230,7 +231,7 @@ input[type=range]:disabled{opacity:.3;cursor:not-allowed}
   </div>
   <div class="hrow1">
     <div class="balwrap">
-      <div class="ballbl">Budget balance — 2025–26 MYEFO baseline: −$36.8B</div>
+      <div class="ballbl">Budget balance</div>
       <div class="balnum def" id="bN">−$36.8B</div>
       <div class="balnote" id="bX">Deficit — find another $36.8B to break even</div>
     </div>
@@ -249,6 +250,7 @@ input[type=range]:disabled{opacity:.3;cursor:not-allowed}
     <div class="smet"><div class="sml">Spending saved</div><div class="smv neu" id="smS">+$0B</div></div>
     <div class="smet"><div class="sml">Net improvement</div><div class="smv neu" id="smT">+$0B</div></div>
   </div>
+  <div class="myefo-note">Baseline: 2025–26 MYEFO (Dec 2025). Changes to levers do not account for second-order behavioural or economic impacts.</div>
 </div>
 
 <div class="cols"><div id="rC"></div><div id="sC"></div></div>
