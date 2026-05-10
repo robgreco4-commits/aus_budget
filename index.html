@@ -8,6 +8,7 @@
 <meta property="og:title" content="Can you save Australia's budget?">
 <meta property="og:description" content="Move the levers on Australia's biggest taxes and spending programs. Starting from a $26.1B deficit — can you get to surplus?">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root {
   --bg1: #ffffff;
@@ -129,6 +130,25 @@ input[type=range]:disabled{opacity:.3;cursor:not-allowed}
 /* Toast */
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#111;color:#fff;font-size:12px;padding:8px 16px;border-radius:20px;opacity:0;transition:all .3s;z-index:2000;pointer-events:none}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* Share card — off-screen, captured by html2canvas */
+#shareCardWrap{position:fixed;left:-9999px;top:-9999px;z-index:-1;pointer-events:none}
+#shareCard{width:600px;height:315px;background:#0a0a0a;border-radius:16px;overflow:hidden;position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:28px 32px 22px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.sc-orb{position:absolute;width:320px;height:320px;right:-60px;top:-80px;border-radius:50%;pointer-events:none}
+.sc-grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:40px 40px}
+.sc-top{display:flex;align-items:flex-start;justify-content:space-between;position:relative;z-index:2}
+.sc-grade-block{display:flex;align-items:center;gap:16px}
+.sc-circle{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;flex-shrink:0}
+.sc-lbl{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.12em;color:#555;margin-bottom:3px}
+.sc-result{font-size:15px;font-weight:600;color:#fff;line-height:1.3}
+.sc-bal{font-size:12px;color:#888;margin-top:2px}
+.sc-flag{font-size:26px;line-height:1}
+.sc-mid{position:relative;z-index:2}
+.sc-resembles{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.14em;color:#555;margin-bottom:5px}
+.sc-pm{font-size:22px;font-weight:700;color:#fff;line-height:1.2}
+.sc-style{font-size:12px;color:#888;margin-top:4px;font-style:italic;max-width:440px;line-height:1.4}
+.sc-bottom{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:2}
+.sc-bal-tag{font-size:11px;font-weight:600;padding:3px 10px;border-radius:100px}
+.sc-wm{font-size:10px;color:#444;letter-spacing:.06em;flex-shrink:0}
 @media(max-width:640px){
   .cols{grid-template-columns:1fr}
   .bigmets{grid-template-columns:1fr 1fr}
@@ -141,9 +161,37 @@ input[type=range]:disabled{opacity:.3;cursor:not-allowed}
 <body>
 
 <h1>🇦🇺 Can you save Australia's budget?</h1>
-<p class="subtitle">2025–26 MYEFO baseline: −$26.1B deficit. Adjust the levers and try to reach surplus.</p>
+<p class="subtitle">2025–26 MYEFO baseline: −$36.8B deficit. Adjust the levers and try to reach surplus.</p>
 
 <div id="toast"></div>
+
+<!-- Off-screen share card for image capture -->
+<div id="shareCardWrap">
+  <div id="shareCard">
+    <div class="sc-orb" id="scOrb"></div>
+    <div class="sc-grid"></div>
+    <div class="sc-top">
+      <div class="sc-grade-block">
+        <div class="sc-circle" id="scCircle"></div>
+        <div>
+          <div class="sc-lbl">My budget grade</div>
+          <div class="sc-result" id="scResult"></div>
+          <div class="sc-bal" id="scBal"></div>
+        </div>
+      </div>
+      <div class="sc-flag">🇦🇺</div>
+    </div>
+    <div class="sc-mid">
+      <div class="sc-resembles">My budget most resembles</div>
+      <div class="sc-pm" id="scPM"></div>
+      <div class="sc-style" id="scStyle"></div>
+    </div>
+    <div class="sc-bottom">
+      <div class="sc-bal-tag" id="scBalTag"></div>
+      <div class="sc-wm">aus-budget.vercel.app</div>
+    </div>
+  </div>
+</div>
 
 <!-- Analysis modal -->
 <div id="overlay">
@@ -164,6 +212,7 @@ input[type=range]:disabled{opacity:.3;cursor:not-allowed}
   </div>
   <div id="merror" class="merror" style="display:none">Analysis unavailable. <a href="#" onclick="copyBudget();document.getElementById('overlay').style.display='none';return false" style="color:var(--acc)">Copy budget summary instead →</a></div>
   <div class="mfooter">
+    <button class="btn btn-primary" id="shareBtn" style="display:none" onclick="shareCard()">📤 Share results</button>
     <button class="btn" onclick="copyBudget();document.getElementById('overlay').style.display='none'">Copy summary</button>
     <button class="btn" onclick="document.getElementById('overlay').style.display='none'">Close</button>
   </div>
@@ -181,19 +230,19 @@ input[type=range]:disabled{opacity:.3;cursor:not-allowed}
   </div>
   <div class="hrow1">
     <div class="balwrap">
-      <div class="ballbl">Budget balance — 2025–26 MYEFO baseline: −$26.1B</div>
-      <div class="balnum def" id="bN">−$26.1B</div>
-      <div class="balnote" id="bX">Deficit — find another $26.1B to break even</div>
+      <div class="ballbl">Budget balance — 2025–26 MYEFO baseline: −$36.8B</div>
+      <div class="balnum def" id="bN">−$36.8B</div>
+      <div class="balnote" id="bX">Deficit — find another $36.8B to break even</div>
     </div>
     <div class="gradebox"><div class="gc" id="gC" style="background:#FEE2E2;color:#991B1B">D</div><div class="gl">Grade</div></div>
   </div>
   <div class="barwrap">
     <div class="bartrack"><div class="barfill" id="bF" style="width:28%;background:#dc2626"></div><div class="barmid"></div></div>
-    <div class="barlbls"><span>−$60B</span><span>Break even</span><span>+$60B</span></div>
+    <div class="barlbls"><span>−$80B</span><span>Break even</span><span>+$60B</span></div>
   </div>
   <div class="bigmets">
-    <div class="bmet"><div class="bmtitle">↑ Total taxation revenue</div><div class="bmain" id="mRT">$709B</div><div class="bsub" id="mRG">26.3% of GDP</div><div class="bdelta neu" id="mRD">Baseline — no change</div></div>
-    <div class="bmet"><div class="bmtitle">↓ Total spending</div><div class="bmain" id="mST">$735B</div><div class="bsub" id="mSG">27.2% of GDP</div><div class="bdelta neu" id="mSD">Baseline — no change</div></div>
+    <div class="bmet"><div class="bmtitle">↑ Total taxation revenue</div><div class="bmain" id="mRT">$750B</div><div class="bsub" id="mRG">26.5% of GDP</div><div class="bdelta neu" id="mRD">Baseline — no change</div></div>
+    <div class="bmet"><div class="bmtitle">↓ Total spending</div><div class="bmain" id="mST">$787B</div><div class="bsub" id="mSG">27.8% of GDP</div><div class="bdelta neu" id="mSD">Baseline — no change</div></div>
   </div>
   <div class="smets">
     <div class="smet"><div class="sml">Revenue raised</div><div class="smv neu" id="smR">+$0B</div></div>
@@ -209,10 +258,10 @@ input[type=range]:disabled{opacity:.3;cursor:not-allowed}
   <button class="btn btn-primary" onclick="showAnalysis()">Analyse my budget ↗</button>
   <button class="btn" onclick="copyBudget()">Copy summary</button>
 </div>
-<div class="disc">Figures approximate — 2025–26 MYEFO baseline. GDP ~$2,700B. NDIS cost = participants × avg cost. New taxes start at $0. Debt interest (~$27B) is non-adjustable. Multipliers are simplified; real impacts depend on behavioural responses and policy design.</div>
+<div class="disc">Figures based on 2025–26 MYEFO (December 2025): revenue $749.8B, spending $786.6B, deficit −$36.8B, GDP ~$2,830B. The 2026–27 Budget is delivered 12 May 2026 — figures will be updated. NDIS cost = participants × avg cost. New taxes start at $0. Debt interest (~$27B) is non-adjustable. Multipliers are simplified; real impacts depend on behavioural responses and policy design.</div>
 
 <script>
-const BDEF=-26.1,BREV=709,BSPE=735,GDP=2700;
+const BDEF=-36.8,BREV=750,BSPE=787,GDP=2830;
 const NDIS_BASE_PEOPLE=640000,NDIS_BASE_COST=72000;
 const NDIS_BASE_B=NDIS_BASE_PEOPLE*NDIS_BASE_COST/1e9;
 
@@ -424,7 +473,7 @@ function update(){
  bn.textContent=(sur?'+':'−')+'$'+Math.abs(bal).toFixed(1)+'B';
  bn.className='balnum '+(sur?'sur':'def');
  document.getElementById('bX').textContent=sur?`Surplus — you're in the black! 🎉`:`Deficit — still need $${Math.abs(bal).toFixed(1)}B more`;
- const pct=Math.max(0,Math.min(100,(bal+60)/120*100));
+ const pct=Math.max(0,Math.min(100,(bal+80)/140*100));
  const bf=document.getElementById('bF');bf.style.width=pct+'%';bf.style.background=sur?'#16a34a':'#dc2626';
  const gd=grade(bal);const gc=document.getElementById('gC');
  gc.textContent=gd.g;gc.style.background=gd.bg;gc.style.color=gd.fg;
@@ -493,6 +542,7 @@ async function showAnalysis(){
  const{txt,changed,bal}=buildSummaryText();
  const gd=grade(bal);
  document.getElementById('overlay').style.display='block';
+ document.getElementById('shareBtn').style.display='none';
  const mgc=document.getElementById('mgc');mgc.textContent=gd.g;mgc.style.background=gd.bg;mgc.style.color=gd.fg;
  document.getElementById('mgdesc').textContent=gd.desc;
  document.getElementById('mgbal').textContent=(bal>=0?'Surplus of $':'Deficit of $')+Math.abs(bal).toFixed(1)+'B';
@@ -535,7 +585,56 @@ async function showAnalysis(){
   document.getElementById('manalysis').innerHTML=html;
   document.getElementById('mloading').style.display='none';
   document.getElementById('mcontent').style.display='block';
+  document.getElementById('shareBtn').style.display='inline-flex';
+  // Store for share card
+  window._lastAnalysis={p,bal,gd};
  }catch(e){document.getElementById('mloading').style.display='none';document.getElementById('merror').innerHTML='Analysis failed: '+e.message+'. <a href="#" onclick="copyBudget();document.getElementById(\'overlay\').style.display=\'none\';return false" style="color:var(--acc)">Copy budget summary instead →</a>';document.getElementById('merror').style.display='block';}
+}
+
+async function shareCard(){
+ const a=window._lastAnalysis;
+ if(!a)return;
+ const{p,bal,gd}=a;
+ const sur=bal>=0;
+ // Populate the hidden card
+ const orb=document.getElementById('scOrb');
+ orb.style.background=sur
+  ?'radial-gradient(circle,rgba(22,163,74,.3) 0%,rgba(22,163,74,.05) 50%,transparent 70%)'
+  :'radial-gradient(circle,rgba(220,38,38,.25) 0%,rgba(220,38,38,.05) 50%,transparent 70%)';
+ const circ=document.getElementById('scCircle');
+ circ.textContent=gd.g;
+ circ.style.background=sur?'rgba(22,163,74,.15)':'rgba(220,38,38,.15)';
+ circ.style.color=sur?'#4ade80':'#f87171';
+ circ.style.border='1.5px solid '+(sur?'rgba(22,163,74,.3)':'rgba(220,38,38,.3)');
+ document.getElementById('scResult').textContent=gd.desc;
+ document.getElementById('scBal').textContent=(sur?'Surplus of $':'Deficit of $')+Math.abs(bal).toFixed(1)+'B';
+ document.getElementById('scPM').textContent=`${p.pm} (${p.pm_era||''})`;
+ document.getElementById('scStyle').textContent='"'+p.political_style+'"';
+ const tag=document.getElementById('scBalTag');
+ tag.textContent=sur?'✓ Surplus achieved':'✗ Deficit budget';
+ tag.style.background=sur?'rgba(22,163,74,.15)':'rgba(220,38,38,.15)';
+ tag.style.color=sur?'#4ade80':'#f87171';
+ tag.style.border='1px solid '+(sur?'rgba(22,163,74,.3)':'rgba(220,38,38,.3)');
+ // Capture and share
+ showToast('Generating image…');
+ try{
+  const card=document.getElementById('shareCard');
+  const canvas=await html2canvas(card,{scale:2,backgroundColor:'#0a0a0a',logging:false,useCORS:true});
+  const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
+  const file=new File([blob],'my-australian-budget.png',{type:'image/png'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+   // Mobile: native share sheet
+   await navigator.share({files:[file],title:'Can you save Australia\'s budget?',text:`I got ${gd.g} — ${gd.desc}. My budget resembles ${p.pm}. Try it yourself:`});
+  } else {
+   // Desktop: download PNG
+   const url=URL.createObjectURL(blob);
+   const link=document.createElement('a');
+   link.download='my-australian-budget.png';
+   link.href=url;link.click();
+   URL.revokeObjectURL(url);
+   showToast('Image downloaded — ready to share!');
+  }
+ }catch(e){if(e.name!=='AbortError')showToast('Could not generate image');}
 }
 
 function resetAll(){
