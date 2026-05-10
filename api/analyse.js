@@ -14,14 +14,20 @@ export default async function handler(req, res) {
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
-        'anthropic-version': '2024-10-22',
+        'anthropic-version': '2025-01-01',
       },
       body: JSON.stringify(req.body),
     });
 
     const data = await response.json();
+
+    if (!response.ok) {
+      console.error('Anthropic API error:', JSON.stringify(data));
+    }
+
     res.status(response.status).json(data);
   } catch (err) {
+    console.error('Fetch error:', err.message);
     res.status(500).json({ error: 'Upstream request failed' });
   }
 }
