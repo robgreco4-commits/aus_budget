@@ -604,118 +604,120 @@ async function shareCard(){
  const{p,bal,gd}=a;
  const sur=bal>=0;
  showToast('Generating image…');
+
+ // Helper: draw wrapped text, returns final y position
+ function wrapText(ctx,text,x,y,maxWidth,lineHeight){
+  const words=text.split(' ');let line='';
+  for(const w of words){
+   const test=line+w+' ';
+   if(ctx.measureText(test).width>maxWidth&&line){
+    ctx.fillText(line.trim(),x,y);line=w+' ';y+=lineHeight;
+   } else line=test;
+  }
+  if(line.trim())ctx.fillText(line.trim(),x,y);
+  return y;
+ }
+
  try{
-  // Draw card using Canvas API — works on all browsers including iOS Safari
-  const W=1200,H=630;
+  const W=1200,H=630,PAD=64;
   const cv=document.createElement('canvas');
   cv.width=W;cv.height=H;
   const ctx=cv.getContext('2d');
 
   // Background
-  ctx.fillStyle='#0a0a0a';
-  ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#0a0a0a';ctx.fillRect(0,0,W,H);
 
-  // Grid lines
-  ctx.strokeStyle='rgba(255,255,255,0.04)';
-  ctx.lineWidth=1;
+  // Grid
+  ctx.strokeStyle='rgba(255,255,255,0.035)';ctx.lineWidth=1;
   for(let x=0;x<W;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
   for(let y=0;y<H;y+=80){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
 
-  // Orb glow (top-right)
+  // Orb
   const orbColor=sur?'rgba(22,163,74,':'rgba(220,38,38,';
-  const grd=ctx.createRadialGradient(W-80,H*0.05,0,W-80,H*0.05,380);
-  grd.addColorStop(0,orbColor+'0.28)');
-  grd.addColorStop(0.5,orbColor+'0.07)');
-  grd.addColorStop(1,orbColor+'0)');
-  ctx.fillStyle=grd;
-  ctx.fillRect(0,0,W,H);
+  const grd=ctx.createRadialGradient(W-100,80,0,W-100,80,420);
+  grd.addColorStop(0,orbColor+'0.3)');grd.addColorStop(.5,orbColor+'0.07)');grd.addColorStop(1,orbColor+'0)');
+  ctx.fillStyle=grd;ctx.fillRect(0,0,W,H);
 
   // Grade circle
-  const cx=72,cy=82,cr=52;
+  const cx=PAD+52,cy=90,cr=50;
   ctx.beginPath();ctx.arc(cx,cy,cr,0,Math.PI*2);
-  ctx.fillStyle=sur?'rgba(22,163,74,0.18)':'rgba(220,38,38,0.18)';
-  ctx.fill();
-  ctx.strokeStyle=sur?'rgba(22,163,74,0.4)':'rgba(220,38,38,0.4)';
-  ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle=sur?'rgba(22,163,74,0.18)':'rgba(220,38,38,0.18)';ctx.fill();
+  ctx.strokeStyle=sur?'rgba(22,163,74,0.45)':'rgba(220,38,38,0.45)';ctx.lineWidth=2;ctx.stroke();
   ctx.fillStyle=sur?'#4ade80':'#f87171';
-  ctx.font='bold 46px -apple-system,BlinkMacSystemFont,sans-serif';
+  ctx.font='bold 44px -apple-system,sans-serif';
   ctx.textAlign='center';ctx.textBaseline='middle';
   ctx.fillText(gd.g,cx,cy+2);
 
-  // Grade label + result
+  // Grade label
   ctx.textAlign='left';ctx.textBaseline='alphabetic';
   ctx.fillStyle='#555';
-  ctx.font='500 22px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.fillText('MY BUDGET GRADE',148,52);
+  ctx.font='500 20px -apple-system,sans-serif';
+  ctx.fillText('MY BUDGET GRADE',cx+cr+24,58);
+
+  // Grade desc — wrapped
   ctx.fillStyle='#ffffff';
-  ctx.font='600 30px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.fillText(gd.desc,148,92);
+  ctx.font='600 28px -apple-system,sans-serif';
+  wrapText(ctx,gd.desc,cx+cr+24,96,W-cx-cr-24-PAD-80,36);
+
+  // Balance line
   ctx.fillStyle='#888';
-  ctx.font='400 24px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.fillText((sur?'Surplus of $':'Deficit of $')+Math.abs(bal).toFixed(1)+'B',148,126);
+  ctx.font='400 22px -apple-system,sans-serif';
+  ctx.fillText((sur?'Surplus of $':'Deficit of $')+Math.abs(bal).toFixed(1)+'B',cx+cr+24,140);
 
   // Flag
-  ctx.font='52px serif';ctx.textAlign='right';
-  ctx.fillText('🇦🇺',W-60,96);
+  ctx.font='48px serif';ctx.textAlign='right';ctx.textBaseline='alphabetic';
+  ctx.fillText('🇦🇺',W-PAD,110);
 
   // Divider
-  ctx.strokeStyle='rgba(255,255,255,0.07)';ctx.lineWidth=1;
-  ctx.beginPath();ctx.moveTo(60,170);ctx.lineTo(W-60,170);ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(PAD,178);ctx.lineTo(W-PAD,178);ctx.stroke();
 
-  // "Most resembles" section
+  // PM resembles label
   ctx.textAlign='left';
   ctx.fillStyle='#555';
-  ctx.font='500 19px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.fillText('MY BUDGET MOST RESEMBLES',60,218);
-  ctx.fillStyle='#ffffff';
-  ctx.font='700 42px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.fillText(`${p.pm} (${p.pm_era||''})`,60,274);
+  ctx.font='500 18px -apple-system,sans-serif';
+  ctx.fillText('MY BUDGET MOST RESEMBLES',PAD,218);
 
-  // Political style (italic, wrapped)
+  // PM name — wrapped in case it's long
+  ctx.fillStyle='#ffffff';
+  ctx.font='700 40px -apple-system,sans-serif';
+  const pmText=`${p.pm} (${p.pm_era||''})`;
+  wrapText(ctx,pmText,PAD,268,W-PAD*2,50);
+
+  // Political style — wrapped
   ctx.fillStyle='#888';
-  ctx.font='italic 400 24px -apple-system,BlinkMacSystemFont,sans-serif';
-  const styleText=`"${p.political_style}"`;
-  const maxW=W-120;
-  const words=styleText.split(' ');
-  let line='',y2=320;
-  for(const w of words){
-   const test=line+w+' ';
-   if(ctx.measureText(test).width>maxW&&line){ctx.fillText(line.trim(),60,y2);line=w+' ';y2+=36;}
-   else line=test;
-  }
-  if(line.trim())ctx.fillText(line.trim(),60,y2);
+  ctx.font='italic 400 22px -apple-system,sans-serif';
+  wrapText(ctx,`"${p.political_style}"`,PAD,322,W-PAD*2,32);
 
   // Bottom divider
-  ctx.strokeStyle='rgba(255,255,255,0.07)';
-  ctx.beginPath();ctx.moveTo(60,H-90);ctx.lineTo(W-60,H-90);ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,0.08)';
+  ctx.beginPath();ctx.moveTo(PAD,H-96);ctx.lineTo(W-PAD,H-96);ctx.stroke();
 
-  // Balance pill
+  // Surplus/deficit pill
   const pillText=sur?'✓  Surplus achieved':'✗  Deficit budget';
-  ctx.font='500 20px -apple-system,BlinkMacSystemFont,sans-serif';
-  const pillW=ctx.measureText(pillText).width+40;
-  const pillX=60,pillY=H-72,pillH=38;
-  ctx.beginPath();
-  ctx.roundRect(pillX,pillY,pillW,pillH,pillH/2);
-  ctx.fillStyle=sur?'rgba(22,163,74,0.18)':'rgba(220,38,38,0.18)';
-  ctx.fill();
-  ctx.strokeStyle=sur?'rgba(22,163,74,0.4)':'rgba(220,38,38,0.4)';
-  ctx.lineWidth=1.5;ctx.stroke();
+  ctx.font='500 19px -apple-system,sans-serif';
+  const pillW=ctx.measureText(pillText).width+44;
+  const pillX=PAD,pillY=H-74,pillH=40;
+  ctx.beginPath();ctx.roundRect(pillX,pillY,pillW,pillH,20);
+  ctx.fillStyle=sur?'rgba(22,163,74,0.18)':'rgba(220,38,38,0.18)';ctx.fill();
+  ctx.strokeStyle=sur?'rgba(22,163,74,0.4)':'rgba(220,38,38,0.4)';ctx.lineWidth=1.5;ctx.stroke();
   ctx.fillStyle=sur?'#4ade80':'#f87171';
   ctx.textAlign='left';ctx.textBaseline='middle';
-  ctx.fillText(pillText,pillX+20,pillY+pillH/2);
+  ctx.fillText(pillText,pillX+22,pillY+pillH/2);
 
   // Watermark
-  ctx.fillStyle='#444';
-  ctx.font='400 20px -apple-system,BlinkMacSystemFont,sans-serif';
+  ctx.fillStyle='#444';ctx.font='400 19px -apple-system,sans-serif';
   ctx.textAlign='right';ctx.textBaseline='middle';
-  ctx.fillText('aus-budget.vercel.app',W-60,pillY+pillH/2);
+  ctx.fillText('aus-budget.vercel.app',W-PAD,pillY+pillH/2);
 
-  // Export
+  // Share
   cv.toBlob(async blob=>{
    const file=new File([blob],'my-australian-budget.png',{type:'image/png'});
+   // Short punchy share text — let the image do the heavy lifting
+   const shareText=`I got ${gd.g} on the Australian budget simulator. My budget resembles ${p.pm}. Can you do better? aus-budget.vercel.app`;
    if(navigator.canShare&&navigator.canShare({files:[file]})){
     try{
-     await navigator.share({files:[file],title:"Can you save Australia's budget?",text:`I got ${gd.g} — ${gd.desc}. My budget resembles ${p.pm}. Try it: aus-budget.vercel.app`});
+     await navigator.share({files:[file],title:"Can you save Australia's budget?",text:shareText});
     }catch(e){if(e.name!=='AbortError')showToast('Share cancelled');}
    } else {
     const url=URL.createObjectURL(blob);
