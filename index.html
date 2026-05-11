@@ -307,6 +307,7 @@ const G=[
  {cat:'r',id:'res',label:'9. Resource & mining taxes',amt:'~$3B/yr',levers:[
   {id:'r1',n:'PRRT effective rate',u:'%',min:0,max:80,step:1,base:40,d:'Nominal 40% (midpoint). Effective rate far lower due to uplift deductions. Drag right = tighten deductions. Each 1pp above 40% ≈ +$250M.',fn:v=>(v-40)*.25},
   {id:'r2',n:'Federal mineral resources levy',u:'% of profits',min:0,max:20,step:.5,base:0,d:'No federal levy exists. New profit-based levy on iron ore, coal & LNG. Each 1% ≈ +$750M.',fn:v=>v*.75},
+  {id:'r3',n:'LNG export levy',u:'$/GJ',min:0,max:10,step:.25,base:0,d:'Australia exports ~81Mt LNG/yr (~4,300 PJ) to Japan, China, South Korea & Taiwan. A volume-based levy charged at point of export, regardless of project profitability. At $1/GJ ≈ +$4.3B; at $2/GJ ≈ +$8.6B. Separate from PRRT — captures revenue from projects that pay little PRRT due to uplift deductions. Currently $0.',fn:v=>v*4.3},
  ]},
  {cat:'r',id:'fbt',label:'10. Fringe benefits tax',amt:'~$4B/yr',levers:[
   {id:'fb1',n:'FBT rate',u:'%',min:0,max:100,step:1,base:47,d:'Currently 47% on non-cash benefits. At 0% = FBT abolished (−$4B). Each 1pp ≈ $85M.',fn:v=>(v-47)*.085},
@@ -411,6 +412,7 @@ function fv(l,v){
   case'$/stick':return'$'+n.toFixed(2)+'/stick';
   case'$/std drink':return'$'+n.toFixed(2)+'/std drink';
   case'% of profits':return n===0?'none':n+'%';
+  case'$/GJ':return n===0?'no levy':'$'+n.toFixed(2)+'/GJ';
   case'$/visit':return'$'+n.toFixed(0)+'/visit';
   case'$/script':return'$'+n.toFixed(2)+'/script';
   case'people':return n===0?'NDIS abolished':parseInt(n).toLocaleString()+' people';
